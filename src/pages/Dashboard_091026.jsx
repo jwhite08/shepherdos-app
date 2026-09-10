@@ -1,20 +1,16 @@
 // src/pages/Dashboard.jsx
 import { useState, useEffect } from "react";
-import { dashboard as dashboardApi, finance as financeApi } from "../lib/api.js";
+import { dashboard as dashboardApi } from "../lib/api.js";
 import { PageHeader, Stat, Spinner, ErrorMsg, Ico, Btn } from "../components/ui/index.jsx";
 
 export default function Dashboard({ t, config, setTab }) {
   const [stats, setStats] = useState(null);
-  const [budgets, setBudgets] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([dashboardApi.getStats(), financeApi.getBudgets()])
-      .then(([statsRes, budgetsRes]) => {
-        setStats(statsRes);
-        setBudgets(budgetsRes);
-      })
+    dashboardApi.getStats()
+      .then(setStats)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
@@ -24,14 +20,14 @@ export default function Dashboard({ t, config, setTab }) {
 
   const { members, giving, recentContributions } = stats;
 
-  // Real budget data from /api/finance/budgets — Decimal fields arrive as
-  // strings over JSON, so coerce to Number before doing any math with them.
-  const budgetData = budgets.budgets.map(b => ({
-    category: b.category,
-    icon: b.icon || "💰",
-    budgeted: Number(b.budgetedAmount),
-    spent: Number(b.spentAmount),
-  }));
+  // Static budget data (will be API-driven in a later phase)
+  const budgetData = [
+    { category: "Staff Salaries",      budgeted: 180000, spent: 44200,  icon: "👥" },
+    { category: "Building & Maintenance", budgeted: 60000, spent: 18700, icon: "🏛️" },
+    { category: "Missions & Outreach", budgeted: 45000,  spent: 9800,   icon: "🌍" },
+    { category: "Youth Programs",       budgeted: 25000,  spent: 6100,   icon: "🧒" },
+    { category: "Worship & Media",      budgeted: 20000,  spent: 5400,   icon: "🎵" },
+  ];
 
   // Giving breakdown from real contributions
   const givingByType = {};
@@ -107,9 +103,7 @@ export default function Dashboard({ t, config, setTab }) {
               <span style={{ fontWeight: 600, fontSize: 14 }}>Budget vs. Actuals</span>
               <Btn small t={t} variant="ghost" onClick={() => setTab("finance")}>Details</Btn>
             </div>
-            {budgetData.length === 0 ? (
-              <p style={{ color: t.textMuted, fontSize: 13 }}>No budget categories set up for {budgets.year} yet.</p>
-            ) : budgetData.map(b => {
+            {budgetData.map(b => {
               const pct = Math.round((b.spent / b.budgeted) * 100);
               return (
                 <div key={b.category} style={{ marginBottom: 12 }}>
