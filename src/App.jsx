@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import Login      from "./pages/Login.jsx";
+import AcceptInvite from "./pages/AcceptInvite.jsx";
 import Dashboard  from "./pages/Dashboard.jsx";
 import Members    from "./pages/Members.jsx";
 import Families   from "./pages/Families.jsx";
@@ -74,7 +75,10 @@ function App() {
     );
   }
 
-  if (!user) return <Login t={t} />;
+  if (!user) {
+    const inviteToken = new URLSearchParams(window.location.search).get("invite");
+    return inviteToken ? <AcceptInvite t={t} token={inviteToken} /> : <Login t={t} />;
+  }
 
   // Nav is filtered by permission so users never see links that would 403.
   // This is presentation only — the API enforces access independently.

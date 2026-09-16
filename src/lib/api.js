@@ -27,6 +27,8 @@ export const auth = {
   login: (email, password) =>
     request("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   me: () => request("/api/auth/me"),
+  acceptInvite: (token, password) =>
+    request("/api/auth/accept-invite", { method: "POST", body: JSON.stringify({ token, password }) }),
 };
 
 // ─── Dashboard ────────────────────────────────────────────────
@@ -40,6 +42,12 @@ export const admin = {
   // Sends the user's complete desired access state, not a delta.
   setUserAccess: (id, data) =>
     request(`/api/admin/users/${id}/access`, { method: "PUT", body: JSON.stringify(data) }),
+  setUserActive: (id, isActive) =>
+    request(`/api/admin/users/${id}/active`, { method: "PATCH", body: JSON.stringify({ isActive }) }),
+  inviteUser: (data) =>
+    request("/api/admin/users/invite", { method: "POST", body: JSON.stringify(data) }),
+  listInvites: () => request("/api/admin/invites"),
+  revokeInvite: (id) => request(`/api/admin/invites/${id}`, { method: "DELETE" }),
 };
 
 // ─── Members ──────────────────────────────────────────────────

@@ -27,13 +27,20 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
+  const acceptInvite = async (token, password) => {
+    const data = await authApi.acceptInvite(token, password);
+    localStorage.setItem("shepherdos_token", data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
   const logout = () => {
     localStorage.removeItem("shepherdos_token");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, acceptInvite }}>
       {children}
     </AuthContext.Provider>
   );
