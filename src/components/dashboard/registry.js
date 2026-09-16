@@ -19,9 +19,11 @@ import RecentContributions from "./widgets/RecentContributions.jsx";
  *             each widget renders its own heading).
  * component   The widget. Receives { t, setTab }.
  * span        Grid columns to occupy (dashboard grid is 2 columns).
- * roles       UserRole values allowed to see this widget at all. This is a
- *             UI convenience, NOT a security boundary — the API must enforce
- *             its own access rules regardless of what renders here.
+ * roles       UserRole values allowed to see this widget at all.
+ * requiresFinance  Widget needs the finance grant (contributions/giving).
+ *
+ * Both fields are a UI convenience, NOT a security boundary — the API
+ * enforces its own access rules regardless of what renders here.
  */
 export const WIDGETS = [
   {
@@ -43,6 +45,7 @@ export const WIDGETS = [
     title: "Giving Breakdown",
     component: GivingBreakdown,
     span: 1,
+    requiresFinance: true,
     roles: ["SUPER_ADMIN", "ADMIN", "STAFF"],
   },
   {
@@ -57,6 +60,7 @@ export const WIDGETS = [
     title: "Recent Contributions",
     component: RecentContributions,
     span: 1,
+    requiresFinance: true,
     roles: ["SUPER_ADMIN", "ADMIN", "STAFF"],
   },
 ];
@@ -80,12 +84,15 @@ const DEFAULT_LAYOUTS = {
  * @param savedIds   The user's saved widget ids, once that feature exists.
  *                   Pass null/undefined to fall back to the role default.
  */
-export function resolveWidgets(role, savedIds) {
+export function resolveWidgets(user, savedIds) {
+  const role = user?.role;
   const ids = savedIds?.length ? savedIds : (DEFAULT_LAYOUTS[role] ?? DEFAULT_LAYOUTS.STAFF);
 
   return ids
     .map(id => WIDGETS_BY_ID[id])
     // Drop unknown ids (a widget removed from the app but still saved in a
-    // user's preferences) and anything the role isn't permitted to see.
-    .filter(w => w && w.roles.includes(role));
+    // user's preferences), anything the role isn't permitted to see, and
+    // anything requiring a permission this user lacks.
+    .filter(w => w && w.roles.includes(role))
+    .filter(w => !w.requiresFinance || user?.canViewFinance);
 }

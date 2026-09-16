@@ -14,7 +14,7 @@ export default function Dashboard({ t, config, setTab }) {
 
   // savedIds is null today. When per-user customization ships, pass the
   // user's saved widget ids here and the role default becomes the fallback.
-  const widgets = resolveWidgets(user?.role, null);
+  const widgets = resolveWidgets(user, null);
 
   return (
     <div>

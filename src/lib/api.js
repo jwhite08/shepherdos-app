@@ -34,6 +34,14 @@ export const dashboard = {
   getStats: () => request("/api/dashboard/stats"),
 };
 
+// ─── Admin (access control) ───────────────────────────────────
+export const admin = {
+  listUsers: () => request("/api/admin/users"),
+  // Sends the user's complete desired access state, not a delta.
+  setUserAccess: (id, data) =>
+    request(`/api/admin/users/${id}/access`, { method: "PUT", body: JSON.stringify(data) }),
+};
+
 // ─── Members ──────────────────────────────────────────────────
 export const members = {
   list: (params = {}) => {

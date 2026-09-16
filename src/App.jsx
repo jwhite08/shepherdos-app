@@ -11,6 +11,7 @@ import Events     from "./pages/Events.jsx";
 import Attendance from "./pages/Attendance.jsx";
 import PortalAdmin from "./pages/PortalAdmin.jsx";
 import MinistryDashboard from "./pages/MinistryDashboard.jsx";
+import AccessControl from "./pages/AccessControl.jsx";
 import { Ico }    from "./components/ui/index.jsx";
 import { ministries as ministriesApi } from "./lib/api.js";
 
@@ -46,6 +47,16 @@ function App() {
     ministriesApi.list().then(d => setMinistries(d.ministries)).catch(() => {});
   }, [user]);
 
+  // If the active tab is no longer permitted (access changed, or a stale tab
+  // from a previous session), fall back to the dashboard rather than rendering
+  // a page that will only produce errors.
+  useEffect(() => {
+    if (!user) return;
+    const globalOnly = ["portal", "access"];
+    if (globalOnly.includes(tab) && !["ADMIN", "SUPER_ADMIN"].includes(user.role)) setTab("dashboard");
+    if (tab === "finance" && !user.canViewFinance) setTab("dashboard");
+  }, [user, tab]);
+
   const themePreset = useMemo(() => {
     if (!user?.organization) return PRESET_THEMES[0];
     return PRESET_THEMES.find(p => p.primary === user.organization.primaryColor) || PRESET_THEMES[0];
@@ -65,15 +76,21 @@ function App() {
 
   if (!user) return <Login t={t} />;
 
+  // Nav is filtered by permission so users never see links that would 403.
+  // This is presentation only — the API enforces access independently.
+  const isGlobalAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+
   const nav = [
     { id: "dashboard",  label: "Dashboard",     icon: "dashboard" },
     { id: "members",    label: "Members",        icon: "members" },
     { id: "families",   label: "Families",       icon: "family" },
     { id: "attendance", label: "Attendance",     icon: "attendance" },
     { id: "ministries", label: "Ministries",     icon: "ministries", children: ministries.map(m => ({ id: `ministry:${m.id}`, label: m.name, emoji: m.icon })) },
-    { id: "finance",    label: "Finances",       icon: "finance" },
+    // Finance covers contributions and donor totals, not department budgets.
+    ...(user.canViewFinance ? [{ id: "finance", label: "Finances", icon: "finance" }] : []),
     { id: "events",     label: "Events",         icon: "events" },
-    { id: "portal",     label: "Member Portal",  icon: "portal" },
+    ...(isGlobalAdmin ? [{ id: "portal",  label: "Member Portal",  icon: "portal" }] : []),
+    ...(isGlobalAdmin ? [{ id: "access",  label: "Access Control", icon: "staff" }] : []),
   ];
 
   return (
@@ -154,6 +171,7 @@ function App() {
         {tab === "finance"    && <Finance    t={t} />}
         {tab === "events"     && <Events     t={t} />}
         {tab === "portal"     && <PortalAdmin t={t} />}
+        {tab === "access"     && <AccessControl t={t} />}
         {tab.startsWith("ministry:") && <MinistryDashboard t={t} ministryId={tab.slice(9)} />}
       </main>
     </div>
