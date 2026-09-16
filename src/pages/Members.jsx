@@ -224,23 +224,41 @@ function MemberDetail({ t, memberId, onBack, onEdit }) {
       <div style={{ padding: "22px 32px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
 
         {/* Contact Info */}
-        <div style={{ background: t.white, borderRadius: 12, padding: 22, border: `1px solid ${t.border}` }}>
-          <h3 style={{ margin: "0 0 14px", fontFamily: "'DM Serif Display', serif", fontSize: 17, color: t.dark }}>Contact Information</h3>
-          {[
-            ["Email", member.email || "—"],
-            ["Phone", member.phone || "—"],
-            ["Address", [member.address, member.city, member.state, member.zip].filter(Boolean).join(", ") || "—"],
-            ["Family", member.family?.familyName || "—"],
-            ["Status", null],
-            ["Member ID", member.id],
-          ].map(([label, value]) => (
-            <div key={label} style={{ display: "flex", padding: "8px 0", borderBottom: `1px solid ${t.border}` }}>
-              <span style={{ width: 120, fontSize: 11, color: t.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0 }}>{label}</span>
-              {label === "Status"
-                ? <StatusBadge status={member.memberStatus} />
-                : <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>}
-            </div>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div style={{ background: t.white, borderRadius: 12, padding: 22, border: `1px solid ${t.border}` }}>
+            <h3 style={{ margin: "0 0 14px", fontFamily: "'DM Serif Display', serif", fontSize: 17, color: t.dark }}>Contact Information</h3>
+            {[
+              ["Email", member.email || "—"],
+              ["Phone", member.phone || "—"],
+              ["Address", [member.address, member.city, member.state, member.zip].filter(Boolean).join(", ") || "—"],
+              ["Family", member.family?.familyName || "—"],
+              ["Status", null],
+              ["Member ID", member.id],
+            ].map(([label, value]) => (
+              <div key={label} style={{ display: "flex", padding: "8px 0", borderBottom: `1px solid ${t.border}` }}>
+                <span style={{ width: 120, fontSize: 11, color: t.textMuted, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0 }}>{label}</span>
+                {label === "Status"
+                  ? <StatusBadge status={member.memberStatus} />
+                  : <span style={{ fontSize: 13, fontWeight: 500 }}>{value}</span>}
+              </div>
+            ))}
+          </div>
+
+          {/* Ministry Involvement */}
+          <div style={{ background: t.white, borderRadius: 12, padding: 22, border: `1px solid ${t.border}` }}>
+            <h3 style={{ margin: "0 0 14px", fontFamily: "'DM Serif Display', serif", fontSize: 17, color: t.dark }}>Ministry Involvement</h3>
+            {!member.subDepartments?.length ? (
+              <span style={{ fontSize: 13, color: t.textMuted }}>Not involved in any ministries yet.</span>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {member.subDepartments.map(sd => (
+                  <span key={sd.subDepartmentId} style={{ padding: "6px 12px", borderRadius: 20, background: t.surface, border: `1px solid ${t.border}`, fontSize: 12, fontWeight: 500 }}>
+                    {sd.subDepartment.ministry.icon} {sd.subDepartment.ministry.name} — {sd.subDepartment.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Church & Giving */}
@@ -274,6 +292,21 @@ function MemberDetail({ t, memberId, onBack, onEdit }) {
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Attendance History */}
+        <div style={{ background: t.white, borderRadius: 12, padding: 22, border: `1px solid ${t.border}`, gridColumn: "1/-1" }}>
+          <h3 style={{ margin: "0 0 14px", fontFamily: "'DM Serif Display', serif", fontSize: 17, color: t.dark }}>Recent Attendance</h3>
+          {!member.attendanceLogs?.length ? (
+            <span style={{ fontSize: 13, color: t.textMuted }}>No attendance recorded yet.</span>
+          ) : (
+            member.attendanceLogs.map(log => (
+              <div key={log.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "8px 0", borderBottom: `1px solid ${t.border}` }}>
+                <span style={{ fontWeight: 500 }}>{log.event?.title || "General Check-In"}</span>
+                <span style={{ color: t.textMuted }}>{new Date(log.date).toLocaleDateString()}</span>
+              </div>
+            ))
           )}
         </div>
 
